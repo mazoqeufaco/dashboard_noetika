@@ -1,3 +1,4 @@
+<!-- ===================== index.html ===================== -->
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -27,6 +28,16 @@
       </label>
 
       <button id="confirm" class="primary">Confirma</button>
+
+      <!-- Opção 1 (recomendada): usuário seleciona o CSV manualmente -->
+      <label class="filelbl">CSV Zscores
+        <input type="file" id="csvFile" accept=".csv" />
+      </label>
+    </div>
+
+    <div class="result">
+      <h2>Resultado (Zranking, s_Zrank)</h2>
+      <div id="table"></div>
     </div>
   </div>
 
@@ -41,6 +52,6 @@
     </div>
   </dialog>
 
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
