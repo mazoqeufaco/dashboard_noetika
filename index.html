@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>Clique sobre o triângulo para definir sua prioridade</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Clique sobre o triângulo para definir sua prioridade</h1>
+
+  <div class="wrap">
+    <canvas id="tri" width="720" height="560"></canvas>
+
+    <div class="controls">
+      <label>Custo
+        <input id="r" type="number" step="0.5" min="0" max="100" /> %
+        <span class="swatch" style="--c:#ff6b6b"></span>
+      </label>
+      <label>Qualidade
+        <input id="g" type="number" step="0.5" min="0" max="100" /> %
+        <span class="swatch" style="--c:#51cf66"></span>
+      </label>
+      <label>Prazo
+        <input id="b" type="number" step="0.5" min="0" max="100" /> %
+        <span class="swatch" style="--c:#4dabf7"></span>
+      </label>
+
+      <button id="confirm" class="primary">Confirma</button>
+    </div>
+  </div>
+
+  <!-- Modal Ok/Redefinir -->
+  <dialog id="confirmDlg">
+    <div class="dlg-content">
+      <p id="dlgText"></p>
+      <div class="dlg-actions">
+        <button id="dlgOk" class="primary">Ok</button>
+        <button id="dlgReset">Redefinir</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
