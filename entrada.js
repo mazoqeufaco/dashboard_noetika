@@ -239,17 +239,17 @@ export function parseCSV(text, sep=','){
  * - weights: {r,g,b} em 0..1
  * - headerMap (opcional): mapeia seus nomes para os esperados
  *   { ZCusto, ZQualidade, ZPrazo, s_Zcusto, s_ZQual, s_ZPrazo, id? }
- * Retorna: [{ id?, Zranking, s_Zrank }, ...]
+ * Retorna: [{ id?, Zranking, s_Zrank, category }, ...]
  */
 export function computeZFromCSV(csvText, {r,g,b}, headerMap){
   const { header, rows } = parseCSV(csvText);
   const norm = s => s.toLowerCase().replace(/\s+/g,'');
-  // nomes padrão
+  // nomes padrão baseados no CSV fornecido
   const defaults = {
-    ZCusto: 'ZCusto',
-    ZQualidade: 'ZQualidade',
-    ZPrazo: 'ZPrazo',
-    s_Zcusto: 's_Zcusto',
+    ZCusto: 'ZCusto_MED_Pond',
+    ZQualidade: 'ZQualidade_MED pond',
+    ZPrazo: 'ZPrazo_MED_pond',
+    s_Zcusto: 's_ZCusto',
     s_ZQual: 's_ZQual',
     s_ZPrazo: 's_ZPrazo',
     id: null
@@ -261,12 +261,12 @@ export function computeZFromCSV(csvText, {r,g,b}, headerMap){
     if(map[want] && header.includes(map[want])) return map[want];
     // busca heurística
     const aliases = {
-      ZCusto:    ['zcusto','zcost'],
-      ZQualidade:['zqualidade','zqual','zquality'],
-      ZPrazo:    ['zprazo','zdeadline','ztime'],
-      s_Zcusto:  ['s_zcusto','szcusto','s_zcost'],
-      s_ZQual:   ['s_zqual','s_zqualidade','szqual'],
-      s_ZPrazo:  ['s_zprazo','szprazo','s_ztime'],
+      ZCusto:    ['zcusto','zcost','zcusto_med_pond'],
+      ZQualidade:['zqualidade','zqual','zquality','zqualidade_med_pond'],
+      ZPrazo:    ['zprazo','zdeadline','ztime','zprazo_med_pond'],
+      s_Zcusto:  ['s_zcusto','szcusto','s_zcost','s_zcusto'],
+      s_ZQual:   ['s_zqual','s_zqualidade','szqual','s_zqual'],
+      s_ZPrazo:  ['s_zprazo','szprazo','s_ztime','s_zprazo'],
       id:        ['id','nome','alternativa','opcao','item']
     }[want] || [];
     for(const h of header){
@@ -308,7 +308,68 @@ export function computeZFromCSV(csvText, {r,g,b}, headerMap){
     const s_Zrank = Math.sqrt( (r*sc)**2 + (g*sq)**2 + (b*sp)**2 );
 
     const id = H.ID ? row[H.ID] : (idx+1);
-    return { id, Zranking, s_Zrank };
+    return { id: idx+1, Zranking, s_Zrank };
   });
-  return out;
+  
+  // Aplica análise de cluster
+  const clustered = performClusterAnalysis(out);
+  return clustered;
+}
+
+/**
+ * Realiza análise de cluster 1D para classificar Zranking em categorias
+ * Usa algoritmo de k-means adaptado para 1D com número ótimo de clusters
+ */
+export function performClusterAnalysis(data) {
+  if (data.length === 0) return data;
+  
+  // Ordena por Zranking
+  const sorted = [...data].sort((a, b) => b.Zranking - a.Zranking);
+  
+  // Determina número ótimo de clusters (3-9)
+  const zScores = sorted.map(d => d.Zranking);
+  const minZ = Math.min(...zScores);
+  const maxZ = Math.max(...zScores);
+  const range = maxZ - minZ;
+  
+  // Se range muito pequeno, usa apenas 3 categorias
+  if (range < 0.1) {
+    return assignCategories(sorted, 3);
+  }
+  
+  // Calcula número ótimo de clusters baseado na distribuição
+  const optimalK = calculateOptimalClusters(zScores);
+  return assignCategories(sorted, optimalK);
+}
+
+function calculateOptimalClusters(data) {
+  const n = data.length;
+  if (n <= 3) return 3;
+  if (n <= 6) return Math.min(4, n);
+  if (n <= 9) return Math.min(6, n);
+  return Math.min(8, n);
+}
+
+function assignCategories(sortedData, k) {
+  const categories = ['Ouro', 'Prata', 'Bronze', 'Ferro', 'Latão', 'Barro', 'Lama', 'Esterco', 'Nem Olhe'];
+  
+  // Se temos menos dados que categorias, usa apenas as primeiras
+  const actualK = Math.min(k, categories.length, sortedData.length);
+  
+  // Divide em grupos aproximadamente iguais
+  const groupSize = Math.ceil(sortedData.length / actualK);
+  
+  return sortedData.map((item, index) => {
+    const groupIndex = Math.floor(index / groupSize);
+    const category = categories[Math.min(groupIndex, actualK - 1)];
+    return { ...item, category };
+  });
+}
+
+/**
+ * Mapeia Zranking para nota de 0-10 baseada no range relativo
+ */
+export function mapToScore(zranking, minZ, maxZ) {
+  if (maxZ === minZ) return 5; // Se todos iguais, nota média
+  return ((zranking - minZ) / (maxZ - minZ)) * 10;
 }
