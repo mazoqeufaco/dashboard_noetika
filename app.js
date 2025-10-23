@@ -1,49 +1,47 @@
-// app.js
 import { initEntrada, computeZFromCSV } from './entrada.js';
 
-(async () => {
-  // inicializa o triângulo
-  const entrada = await initEntrada({
-    imgSrc: 'public/triangulo.png', // ou "triangulo rgb soma 1.png"
-    vertexToChannel: ['B','R','G']
-  });
+// Caminhos padrão
+const IMG_SRC = 'public/triangulo rgb soma 1.png'; // seu arquivo com espaços no nome
+const CSV_DEFAULT = 'data/Matriz de Decisão - Zscores para dash.csv'; // opcional (estático)
 
-  // captura CSV do input e processa quando usuário clicar Ok
+// Renderiza tabela simples com sort por Zranking desc
+function renderTable(rows){
+  const host = document.getElementById('table');
+  if(!rows || !rows.length){ host.innerHTML = '<em>Nenhum resultado.</em>'; return; }
+  const th = `<thead><tr><th>ID</th><th class="num">Zranking</th><th class="num">s_Zrank</th></tr></thead>`;
+  const tb = rows.map(r=>`<tr><td>${String(r.id)}</td><td class="num">${r.Zranking.toFixed(5)}</td><td class="num">${r.s_Zrank.toFixed(5)}</td></tr>`).join('');
+  host.innerHTML = `<table class="table">${th}<tbody>${tb}</tbody></table>`;
+}
+
+(async () => {
+  // inicializa UI de entrada
+  const entrada = await initEntrada({ imgSrc: IMG_SRC, vertexToChannel: ['B','R','G'] });
+
+  // Carrega CSV por upload (opção recomendada para manter privado)
   let csvText = null;
   document.getElementById('csvFile').addEventListener('change', async (e)=>{
-    const file = e.target.files?.[0];
-    if(!file) return;
-    csvText = await file.text();
+    const f = e.target.files?.[0]; if(!f) return; csvText = await f.text();
   });
 
-  // callback ao confirmar prioridades
-  entrada.onConfirm(async ({r,g,b}) => {
-    if(!csvText){
-      alert('Selecione o CSV primeiro.');
-      return;
-    }
-    try {
-      // se seus cabeçalhos tiverem nomes diferentes, ajuste o headerMap
-      const headerMap = {
-        // ZCusto: 'Z Custo',  // exemplo
-        // ZQualidade: 'Z Qual',
-        // ZPrazo: 'Z Prazo',
-        // s_Zcusto: 's_Custo',
-        // s_ZQual: 's_Qual',
-        // s_ZPrazo: 's_Prazo',
-        // id: 'Alternativa'
-      };
-      const tabela = computeZFromCSV(csvText, {r,g,b}, headerMap);
-      // TODO: passar 'tabela' para o próximo estágio do seu pipeline
-      console.log('Zranking (amostra):', tabela.slice(0,3));
+  // Opcional: tenta carregar CSV estático se existir em /data
+  try {
+    const resp = await fetch(CSV_DEFAULT, { cache: 'no-store' });
+    if(resp.ok){ csvText = await resp.text(); }
+  } catch (_) { /* ignorar se não existir */ }
 
-      // demo: imprime na página
-      const lines = tabela.map(o => `${o.id}\t${o.Zranking.toFixed(5)}\t${o.s_Zrank.toFixed(5)}`);
-      document.getElementById('result').textContent =
-        'id\tZranking\ts_Zrank\n' + lines.join('\n');
-    } catch (err) {
-      console.error(err);
-      alert(err.message || 'Erro ao processar CSV.');
+  // Callback quando o usuário confirmar (Ok)
+  entrada.onConfirm(({r,g,b}) => {
+    if(!csvText){ alert('Selecione o CSV (ou coloque em /data) antes de confirmar.'); return; }
+    try{
+      const table = computeZFromCSV(csvText, {r,g,b});
+      // Ordena por Zranking desc antes de exibir
+      table.sort((a,b)=> b.Zranking - a.Zranking);
+      renderTable(table);
+
+      // Aqui você pode enviar (r,g,b) e/ou a tabela para outro backend:
+      // fetch('/proximo-applet', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ weights:{r,g,b}, ranking: table }) });
+    }catch(err){
+      console.error(err); alert(err.message || 'Erro ao processar CSV.');
     }
   });
 })();
