@@ -1,7 +1,7 @@
 // entrada.js — triângulo PNG com clique/arraste + auto-balance + modal Ok/Redefinir
 export const DEFAULTS = {
   canvasId: 'tri',
-  imgSrc: 'public/triangulo rgb soma 1.png',
+  imgSrc: 'public/triangulo2.png',
   vertexToChannel: ['B','R','G'], // [top,left,right] -> B,R,G (Prazo, Custo, Qualidade)
   ui: {
     rSel: '#r', gSel: '#g', bSel: '#b',
@@ -14,7 +14,7 @@ export const DEFAULTS = {
 const area=(ax,ay,bx,by,cx,cy)=>(bx-ax)*(cy-ay)-(cx-ax)*(by-ay);
 function barycentric(px,py,A,B,C){ const d=area(A.x,A.y,B.x,B.y,C.x,C.y);
   const w1=area(px,py,B.x,B.y,C.x,C.y)/d, w2=area(px,py,C.x,C.y,A.x,A.y)/d, w3=1-w1-w2; return [w1,w2,w3]; }
-const inside=(w,t=1e-4)=>w[0]>=-t&&w[1]>=-t&&w[2]>=-t;
+const inside=(w,t=1e-6)=>w[0]>=t&&w[1]>=t&&w[2]>=t;
 const norm3p=(r,g,b)=>{const s=Math.max(r+g+b,1e-12);return [r/s*100,g/s*100,b/s*100];};
 const clamp01p=v=>Math.max(0,Math.min(100,v));
 function baryToRGB([wt,wl,wr], map){ const idx={'R':0,'G':1,'B':2}, out=[0,0,0], w=[wt,wl,wr];
@@ -26,10 +26,19 @@ function detectVerticesByAlpha(img,w,h){
   const off=document.createElement('canvas'); off.width=w; off.height=h;
   const octx=off.getContext('2d'); octx.drawImage(img,0,0,w,h);
   const {data}=octx.getImageData(0,0,w,h);
-  const pts=[]; const TH=8;
-  for(let y=0;y<h;y++) for(let x=0;x<w;x++){ if(data[(y*w+x)*4+3]>=TH) pts.push({x,y}); }
+  const pts=[]; const TH=30; // Threshold menor para capturar mais pixels
+  
+  // Procura em toda a área da imagem
+  for(let y=0;y<h;y++) {
+    for(let x=0;x<w;x++){
+      const alpha = data[(y*w+x)*4+3];
+      if(alpha>=TH) pts.push({x,y});
+    }
+  }
+  
   if(!pts.length) return {top:{x:w/2,y:0},left:{x:0,y:h-1},right:{x:w-1,y:h-1}};
-  const extreme=(key,min=true,band=2)=>{
+  
+  const extreme=(key,min=true,band=3)=>{
     const vs=pts.map(p=>p[key]); const ex=min?Math.min(...vs):Math.max(...vs);
     const sel=pts.filter(p=>Math.abs(p[key]-ex)<=band);
     if(key==='y'){ const cx=sel.reduce((s,p)=>s+p.x,0)/sel.length;
@@ -64,11 +73,13 @@ export async function initEntrada(opts={}){
   const img=new Image();
   await new Promise((res,rej)=>{ img.onload=res; img.onerror=rej; img.src=cfg.imgSrc; });
 
-  const padTop=10,padBottom=10;
-  const maxW=canvas.width-80, maxH=canvas.height-padTop-padBottom;
-  const scale=Math.min(maxW/img.width, maxH/img.height);
+  const padTop=30,padBottom=30; // Padding equilibrado
+  const maxW=canvas.width-40, maxH=canvas.height-padTop-padBottom;
+  const scale=Math.min(maxW/img.width, maxH/img.height) * 0.7; // 70% do box inteiro
   const w=Math.round(img.width*scale), h=Math.round(img.height*scale);
-  const x=Math.floor((canvas.width-w)/2), y=padTop;
+  const x=Math.floor((canvas.width-w)/2);
+  // Posiciona o triângulo um pouco mais para baixo para equilibrar espaçamentos
+  const y=padTop + Math.floor((canvas.height - padTop - padBottom - h) * 0.5);
   const rect={x,y,w,h};
 
   const v=detectVerticesByAlpha(img,w,h);
@@ -123,7 +134,7 @@ export async function initEntrada(opts={}){
   window.addEventListener('mouseup',()=>{ dragging=false; });
   canvas.addEventListener('click',e=>{
     const r=canvas.getBoundingClientRect();
-    if(!handlePoint(e.clientX-r.left,e.clientY-r.top)){ setPerc(0,0,0); }
+    handlePoint(e.clientX-r.left,e.clientY-r.top);
   });
 
   let onConfirm=null;

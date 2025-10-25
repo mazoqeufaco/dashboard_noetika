@@ -1,0 +1,13 @@
+coordenadas na árvore,nome,Custo Anual (R$),s Custo Anual (R$),Qualidade,s Qualidade,prazo (dias),s prazo (dias)
+I.1,MS PowerApps,72040,12000,"9,5","0,2",45,15
+I.2,Salesforce,254000,35000,"9,8","0,1",60,20
+I.3,ServiceNow,361000,50000,"9,7","0,1",50,10
+II.1.a,MVP s/ anon prof,17000,6083,6,2,5,2
+II.1.b,MVP s/ anon aluno,28000,18028,7,2,10,3
+II.2,MVP apres 1,39000,24515,8,1,15,5
+II.3,MVP anon expand.,44000,24515,9,1,20,5
+III.1a,MVP c/ IA própria,15370,47670,"9,2","1,2",19,6
+III.1.b,PLIM 2.0 DMZ na SEG,27033,7986,"9,4","0,2",26,17
+III.2.a,PLIM 1.5 na SEG,67500,13500,"9,2","0,2",15,7
+III.2.b,PLIM 2.0 na SEG,113231,69162,"9,0","0,3",20,7
+III.2.c,PLIM 2.0 externo,125127,24223,"9,2","0,3",22,7

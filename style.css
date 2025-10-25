@@ -10,17 +10,19 @@
 * { box-sizing: border-box; }
 html,body { margin:0; padding:0; background:var(--bg); color:var(--text);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
-h1 { text-align:center; font-size:22px; font-weight:800; margin:18px 8px; }
+h1 { text-align:center; font-size:28px; font-weight:800; margin:18px 8px 8px; color:var(--accent); }
+h2 { text-align:center; font-size:16px; font-weight:600; margin:0 8px 12px; color:var(--muted); }
+p { text-align:center; font-size:14px; margin:0 8px 18px; color:var(--text); }
 
 .wrap { max-width: 1100px; margin: 0 auto; padding: 8px 16px 24px; }
 .tri-wrap { position: relative; width: 100%; max-width: 900px; margin: 0 auto; }
 #tri { display:block; width:100%; background:#000; border:1px solid #222; border-radius:12px; }
 
 /* Rótulos fora do triângulo */
-.label { position:absolute; font-size:36px; font-weight:900; text-shadow: 0 2px 4px rgba(0,0,0,.6); }
-.label-top   { color:#43b0ff; top:6px; left:50%; transform:translateX(-50%); }
-.label-left  { color:#ff5252; bottom:18px; left:24px; }
-.label-right { color:#d6ff4d; bottom:18px; right:24px; }
+.label { position:absolute; font-size:28px; font-weight:900; text-shadow: 0 2px 4px rgba(0,0,0,.6); }
+.label-top   { color:#43b0ff; top:25px; left:50%; transform:translateX(-50%); }
+.label-left  { color:#ff5252; bottom:15px; left:12px; }
+.label-right { color:#d6ff4d; bottom:15px; right:12px; }
 
 /* Controles */
 .controls { display:flex; flex-wrap:wrap; gap:16px; align-items:center; justify-content:center;
@@ -64,6 +66,18 @@ button:hover{ filter:brightness(1.05); }
 .table td{ color:#e6e6e6; }
 .table .num{ text-align:right; font-variant-numeric: tabular-nums; }
 .table a{ color:var(--link); text-decoration:underline; }
+.cluster-badge{ 
+  display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:700; 
+  text-transform:uppercase; letter-spacing:0.5px;
+}
+.cluster-1{ background:#ffd700; color:#000; }
+.cluster-2{ background:#c0c0c0; color:#000; }
+.cluster-3{ background:#cd7f32; color:#fff; }
+.cluster-4{ background:#708090; color:#fff; }
+.cluster-5{ background:#8b4513; color:#fff; }
+.cluster-6{ background:#696969; color:#fff; }
+.cluster-7{ background:#2f4f4f; color:#fff; }
+.cluster-8{ background:#1c1c1c; color:#fff; }
 .result-actions{ margin-top:10px; display:flex; justify-content:flex-end; }
 
 /* Árvore */
